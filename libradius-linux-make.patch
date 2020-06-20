@@ -1,0 +1,50 @@
+--- libradius-linux/Makefile.orig	2004-08-27 09:20:33.000000000 +0200
++++ libradius-linux/Makefile	2020-06-20 21:54:21.982370397 +0200
+@@ -25,6 +25,8 @@
+ #	$FreeBSD: src/lib/libradius/Makefile,v 1.1.1.1 1998/11/13 00:53:01 jdp Exp $
+ 
+ PREFIX=	/usr/local
++LIBDIR=	$(PREFIX)/lib
++MANDIR=	$(PREFIX)/share/man
+ 
+ RM=		rm -f
+ LN=		ln
+@@ -32,7 +34,7 @@
+ CFLAGS= -O2
+ 
+ # linux -L$(PREFIX)/lib -lmd
+-LIBMD= -L$(PREFIX)/lib -lmd
++LIBMD= -lmd
+ 
+ # netbsd - it's in libc
+ #LIBMD= -L/usr/lib -lc
+@@ -49,9 +51,9 @@
+ 	ranlib $@
+ 
+ radlib.o:       radlib.c
+-	$(CC) $(CFLAGS) -c radlib.c -o radlib_r.o
+-	ld -r -o radlib.o radlib_r.o -L$(PREFIX)/lib $(LIBMD)
+-	$(CC) -shared radlib_r.o -o libradius.so.1.0  -L$(PREFIX)/lib $(LIBMD)
++	$(CC) $(CFLAGS) -c radlib.c -o radlib_r.o -fPIC
++	$(CC) $(CFLAGS) -c radlib.c -o radlib.o
++	$(CC) -shared -Wl,-soname,libradius.so.1 radlib_r.o -o libradius.so.1.0 $(LIBMD)
+ 	$(RM) radlib_r.o
+ 
+ clean:
+@@ -61,9 +63,10 @@
+ 	$(RM) lib$(LIB).a
+ 
+ install:	all
+-	install -c -m 644 -o bin -g bin lib$(LIB).a $(PREFIX)/lib
+-	install -c -m 644 -o bin -g bin lib$(LIB).so.1.0 $(PREFIX)/lib
+-	$(LN) -sf $(PREFIX)/lib/lib$(LIB).so.1.0 $(PREFIX)/lib/lib$(LIB).so
+-	install -c -m 444 -o bin -g bin radlib.h $(PREFIX)/include
+-	install -c -m 444 -o bin -g bin libradius.3 $(PREFIX)/man/man3
+-	install -c -m 444 -o bin -g bin radius.conf.5 $(PREFIX)/man/man5
++	install -c -m 644 lib$(LIB).a $(DESTDIR)$(LIBDIR)
++	install -c -m 644 lib$(LIB).so.1.0 $(DESTDIR)$(LIBDIR)
++	$(LN) -sf lib$(LIB).so.1.0 $(DESTDIR)$(LIBDIR)/lib$(LIB).so.1
++	$(LN) -sf lib$(LIB).so.1.0 $(DESTDIR)$(LIBDIR)/lib$(LIB).so
++	install -c -m 644 radlib.h $(DESTDIR)$(PREFIX)/include
++	install -c -m 644 libradius.3 $(DESTDIR)$(MANDIR)/man3
++	install -c -m 644 radius.conf.5 $(DESTDIR)$(MANDIR)/man5
